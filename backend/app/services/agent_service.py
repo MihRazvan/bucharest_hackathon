@@ -1,16 +1,15 @@
 # app/services/agent_service.py
 import os
+import json
 from dotenv import load_dotenv
 from coinbase_agentkit import (
     AgentKit,
     AgentKitConfig,
-    SmartWalletProvider,
-    SmartWalletProviderConfig, 
+    CdpWalletProvider,  # Changed from SmartWalletProvider
+    CdpWalletProviderConfig,  # Changed from SmartWalletProviderConfig
     wallet_action_provider,
+    cdp_api_action_provider,  # Added for faucet functionality
 )
-from eth_account.account import Account
-import json
-from cdp import Cdp  # Import CDP directly to configure it
 
 class AgentService:
     """Simple service for accessing AgentKit functionality"""
@@ -30,52 +29,38 @@ class AgentService:
     def initialize_agent(self):
         """Initialize the AgentKit instance with a wallet"""
         try:
-            # Try to load saved wallet data
-            wallet_data = self._load_wallet_data()
-            
-            # Get or generate private key
-            private_key = wallet_data.get("private_key")
-            if not private_key:
-                # Generate new key
-                acct = Account.create()
-                private_key = acct.key.hex()
-                wallet_data["private_key"] = private_key
-                self._save_wallet_data(wallet_data)
-                print("Generated new private key")
-            
-            # Create account object 
-            signer = Account.from_key(private_key)
-            
-            # Get smart wallet address if we have one
-            smart_wallet_address = wallet_data.get("smart_wallet_address")
-            
-            print(f"Initializing with network: {self.network_id}")
-            print(f"Signer address: {signer.address}")
-            print(f"Smart wallet address: {smart_wallet_address or 'Not created yet'}")
-            
-            # Explicitly configure CDP with API keys from env variables
+            # Get API keys
             api_key_name = os.getenv("CDP_API_KEY_NAME")
             api_key_private_key = os.getenv("CDP_API_KEY_PRIVATE_KEY")
             
             if not api_key_name or not api_key_private_key:
                 raise ValueError("CDP API keys not found in environment variables")
                 
-            print(f"Configuring CDP with API key name: {api_key_name}")
-            # Configure CDP globally
-            Cdp.configure(
+            print(f"Initializing with network: {self.network_id}")
+            print(f"Using CDP API key name: {api_key_name}")
+            
+            # Try to load saved wallet data
+            wallet_data = self._load_wallet_data()
+            
+            # Initialize CdpWalletProvider (using wallet_data if available)
+            config = CdpWalletProviderConfig(
                 api_key_name=api_key_name,
-                private_key=api_key_private_key.replace("\\n", "\n"),
-                source="agentkit"
+                api_key_private=api_key_private_key,
+                network_id=self.network_id
             )
             
-            # Initialize SmartWalletProvider
-            self.wallet_provider = SmartWalletProvider(
-                SmartWalletProviderConfig(
-                    network_id=self.network_id,
-                    signer=signer,
-                    smart_wallet_address=smart_wallet_address,
-                )
-            )
+            if "wallet_data" in wallet_data:
+                # Use existing wallet data if available
+                config.wallet_data = wallet_data["wallet_data"]
+                print("Using existing wallet data")
+            
+            self.wallet_provider = CdpWalletProvider(config)
+            
+            # Save wallet data for future use
+            exported_wallet = self.wallet_provider.export_wallet()
+            wallet_data["wallet_data"] = exported_wallet
+            self._save_wallet_data(wallet_data)
+            print("Wallet data saved")
             
             # Initialize AgentKit
             self.agent_kit = AgentKit(
@@ -83,18 +68,12 @@ class AgentService:
                     wallet_provider=self.wallet_provider,
                     action_providers=[
                         wallet_action_provider(),
+                        cdp_api_action_provider(),  # Added for faucet functionality
                     ],
                 )
             )
             
-            # Save the smart wallet address if it was created
-            new_wallet_address = self.wallet_provider.get_address()
-            if new_wallet_address != smart_wallet_address:
-                wallet_data["smart_wallet_address"] = new_wallet_address
-                self._save_wallet_data(wallet_data)
-                print(f"Smart wallet address updated: {new_wallet_address}")
-            
-            print(f"Agent successfully initialized with wallet address: {new_wallet_address}")
+            print(f"Agent successfully initialized with wallet address: {self.wallet_provider.get_address()}")
             return True
         except Exception as e:
             print(f"Error initializing agent: {e}")
@@ -114,10 +93,16 @@ class AgentService:
     def _save_wallet_data(self, data):
         """Save wallet data to file"""
         try:
-            with open(self.wallet_file, 'w') as f:
+            # In Render.com, files in the app directory are read-only after deployment
+            # Try writing to /tmp instead
+            tmp_wallet_file = "/tmp/wallet_data.json"
+            with open(tmp_wallet_file, 'w') as f:
                 json.dump(data, f, indent=2)
+            print(f"Wallet data saved to {tmp_wallet_file}")
+            return True
         except Exception as e:
             print(f"Error saving wallet data: {e}")
+            return False
     
     def get_wallet_details(self):
         """Get details about the agent's wallet"""
@@ -159,10 +144,6 @@ class AgentService:
                 if not self.initialize_agent():
                     return {"status": "error", "message": "Agent initialization failed"}
             
-            # Check if we're on a testnet
-            if "sepolia" not in self.network_id.lower() and "testnet" not in self.network_id.lower():
-                return {"status": "error", "message": "Faucet is only available on testnets"}
-                
             # Request funds
             result = self.agent_kit.execute_action(
                 "cdp_api", "request_faucet_funds", 
