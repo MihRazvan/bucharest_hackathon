@@ -1,0 +1,4 @@
+[console_scripts]
+check-description-length=scripts.check_description_length:main
+generate-action-provider=scripts.generate_action_provider.main:main
+

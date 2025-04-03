@@ -1,0 +1,121 @@
+Metadata-Version: 2.4
+Name: allora_sdk
+Version: 0.2.0
+Summary: Allora Network SDK
+Project-URL: Homepage, https://github.com/allora-network/allora-sdk-py
+Project-URL: Issues, https://github.com/allora-network/allora-sdk-py/issues
+Project-URL: Allora Network, https://allora.network
+Author-email: spooktheducks <spooktheducks@protonmail.com>
+License-File: LICENSE
+Classifier: License :: OSI Approved :: Apache Software License
+Classifier: Operating System :: OS Independent
+Classifier: Programming Language :: Python :: 3
+Requires-Python: >=3.8
+Requires-Dist: aiohttp
+Requires-Dist: annotated-types==0.7.0
+Requires-Dist: cachetools==5.5.0
+Requires-Dist: certifi==2024.12.14
+Requires-Dist: chardet==5.2.0
+Requires-Dist: charset-normalizer==3.4.1
+Requires-Dist: colorama==0.4.6
+Requires-Dist: distlib==0.3.9
+Requires-Dist: filelock==3.16.1
+Requires-Dist: idna==3.10
+Requires-Dist: packaging==24.2
+Requires-Dist: platformdirs==4.3.6
+Requires-Dist: pluggy==1.5.0
+Requires-Dist: pydantic-core==2.27.2
+Requires-Dist: pydantic==2.10.4
+Requires-Dist: pyproject-api==1.8.0
+Requires-Dist: requests==2.32.3
+Requires-Dist: tox==4.23.2
+Requires-Dist: typing-extensions==4.12.2
+Requires-Dist: urllib3==2.3.0
+Requires-Dist: virtualenv==20.28.1
+Provides-Extra: dev
+Requires-Dist: fastapi; extra == 'dev'
+Requires-Dist: pytest; extra == 'dev'
+Requires-Dist: pytest-asyncio; extra == 'dev'
+Requires-Dist: starlette; extra == 'dev'
+Requires-Dist: tox; extra == 'dev'
+Description-Content-Type: text/markdown
+
+
+
+# Allora Network Python SDK
+
+Install:
+
+```
+pip install allora_sdk
+```
+
+Run tests:
+
+```
+tox
+```
+
+
+
+```py
+from allora_sdk.v2.api_client import (
+    AlloraAPIClient,
+    ChainSlug,
+    PriceInferenceToken,
+    PriceInferenceTimeframe,
+    AlloraTopic,
+    AlloraInference,
+)
+
+client = AlloraAPIClient(
+    chain_slug=ChainSlug.TESTNET,                  # Or MAINNET
+    api_key=os.environ.get("ALLORA_API_KEY"),      # Optional
+    base_api_url=os.environ.get("ALLORA_API_URL"), # Optional
+)
+
+# Each topic is as follows:
+#
+# class AlloraTopic(BaseModel):
+#     topic_id: int
+#     topic_name: str
+#     description: Optional[str] = None
+#     epoch_length: int
+#     ground_truth_lag: int
+#     loss_method: str
+#     worker_submission_window: int
+#     worker_count: int
+#     reputer_count: int
+#     total_staked_allo: float
+#     total_emissions_allo: float
+#     is_active: Optional[bool] = None
+#     updated_at: str
+topics = await client.get_all_topics()
+
+# Each inference response is as follows:
+# 
+# class AlloraInference(BaseModel):
+#     signature: str
+#     inference_data: AlloraInferenceData
+# 
+# class AlloraInferenceData(BaseModel):
+#     network_inference: str
+#     network_inference_normalized: str
+#     confidence_interval_percentiles: List[str]
+#     confidence_interval_percentiles_normalized: List[str]
+#     confidence_interval_values: List[str]
+#     confidence_interval_values_normalized: List[str]
+#     topic_id: str
+#     timestamp: int
+#     extra_data: str
+
+# Fetch inferences by topic ID
+result = await client.get_inference_by_topic_id(topics[0].topic_id)
+print(f'{topics[0].topic_name} price inference: {result.inference_data.network_inference_normalized}')
+
+# Fetch inferences by asset and timeframe
+result = await client.get_price_inference(PriceInferenceToken.BTC, PriceInferenceTimeframe.EIGHT_HOURS)
+print(f'{topics[0].topic_name} price inference: {result.inference_data.network_inference_normalized}')
+```
+
+
