@@ -3,76 +3,83 @@ from dotenv import load_dotenv
 from tmai_api import TokenMetricsClient
 from datetime import datetime, timedelta
 
+load_dotenv()
+
 class TokenMetricsService:
     """Service for interacting with Token Metrics API"""
-    
+
     def __init__(self):
         self.api_key = os.getenv("TOKEN_METRICS_API_KEY")
         self.client = TokenMetricsClient(api_key=self.api_key)
-        
-    async def get_market_sentiment(self):
-        """Get the overall market sentiment data"""
+
+    async def get_token_info(self, symbol):
         try:
-            # Get current date and date from 7 days ago
-            end_date = datetime.now().strftime("%Y-%m-%d")
-            start_date = (datetime.now() - timedelta(days=7)).strftime("%Y-%m-%d")
-            
-            # Fetch market metrics
-            market_metrics = self.client.market_metrics.get_dataframe(
-                startDate=start_date,
-                endDate=end_date
-            )
-            
-            if market_metrics.empty:
-                return {"status": "error", "message": "No market metrics data available"}
-            
-            # Get the latest market sentiment data
-            latest_metrics = market_metrics.iloc[-1]
-            
+            tokens = self.client.tokens.get_dataframe(SYMBOL=symbol)
+            if tokens.empty:
+                return {"status": "error", "message": f"No data available for {symbol}"}
+            latest = tokens.iloc[0]
             return {
                 "status": "success",
-                "market_sentiment": {
-                    "grade": float(latest_metrics.get("MARKET_SENTIMENT_GRADE", 50)),
-                    "label": latest_metrics.get("MARKET_SENTIMENT_LABEL", "neutral"),
-                    "last_signal": int(latest_metrics.get("LAST_TM_GRADE_SIGNAL", 0)),
-                    "date": latest_metrics.get("DATE", end_date)
+                "token_info": {
+                    "id": latest.get("TOKEN_ID"),
+                    "name": latest.get("TOKEN_NAME"),
+                    "symbol": latest.get("TOKEN_SYMBOL"),
+                    "exchange_list": latest.get("EXCHANGE_LIST"),
+                    "category_list": latest.get("CATEGORY_LIST"),
+                    "contract_address": latest.get("CONTRACT_ADDRESS"),
+                    "tm_link": latest.get("TM_LINK")
                 }
             }
         except Exception as e:
             return {"status": "error", "message": str(e)}
-    
-    async def get_stablecoin_health(self, symbols=["USDC", "USDT", "DAI"]):
-        """Get health metrics for stablecoins"""
+
+    async def get_trader_grades(self, symbol, start_date=None, end_date=None):
         try:
-            # Get current date and date from 7 days ago
-            end_date = datetime.now().strftime("%Y-%m-%d")
-            start_date = (datetime.now() - timedelta(days=7)).strftime("%Y-%m-%d")
-            
-            # Fetch trader grades for stablecoins
+            if not end_date:
+                end_date = datetime.now().strftime("%Y-%m-%d")
+            if not start_date:
+                start_date = (datetime.now() - timedelta(days=7)).strftime("%Y-%m-%d")
+
             trader_grades = self.client.trader_grades.get_dataframe(
-                symbol=",".join(symbols),
+                SYMBOL=symbol,
                 startDate=start_date,
                 endDate=end_date
             )
-            
+
             if trader_grades.empty:
-                return {"status": "error", "message": "No stablecoin data available"}
-            
-            # Process the data to get the latest grades for each stablecoin
-            result = {}
-            for symbol in symbols:
-                symbol_data = trader_grades[trader_grades["SYMBOL"] == symbol]
-                if not symbol_data.empty:
-                    latest = symbol_data.iloc[-1]
-                    result[symbol] = {
-                        "grade": float(latest.get("TM_TRADER_GRADE", 50)),
-                        "ta_grade": float(latest.get("TA_GRADE", 50)),
-                        "quant_grade": float(latest.get("QUANT_GRADE", 50)),
-                        "date": latest.get("DATE", end_date)
-                    }
-            
-            return {"status": "success", "stablecoin_health": result}
+                return {"status": "error", "message": "No trader grades data available"}
+
+            data = trader_grades.to_dict(orient="records")
+
+            return {"status": "success", "trader_grades": data}
         except Exception as e:
             return {"status": "error", "message": str(e)}
 
+    async def get_market_sentiment(self):
+        try:
+            end_date = datetime.now().strftime("%Y-%m-%d")
+            start_date = (datetime.now() - timedelta(days=7)).strftime("%Y-%m-%d")
+
+            sentiment = self.client.market_metrics.get_dataframe(
+                startDate=start_date, 
+                endDate=end_date
+            )
+
+            if sentiment.empty:
+                return {"status": "error", "message": "No market sentiment data available"}
+
+            latest = sentiment.iloc[-1]
+            return {
+                "status": "success",
+                "market_sentiment": {
+                    "grade": float(latest.get("MARKET_SENTIMENT_GRADE", 50)),
+                    "label": latest.get("MARKET_SENTIMENT_LABEL", "neutral"),
+                    "last_signal": int(latest.get("LAST_TM_GRADE_SIGNAL", 0)),
+                    "date": latest.get("DATE", end_date)
+                }
+            }
+        except Exception as e:
+            return {"status": "error", "message": str(e)}
+
+# Instantiate the service
 token_metrics_service = TokenMetricsService()
