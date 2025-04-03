@@ -112,15 +112,27 @@ class AgentService:
                 if not self.initialize_agent():
                     return {"status": "error", "message": "Agent initialization failed"}
                     
-            # The correct way to execute an action in AgentKit
-            wallet_details = self.agent_kit.wallet_provider.get_wallet_details()
+            # CdpWalletProvider doesn't have a get_wallet_details method
+            # So we'll build the details manually
+            wallet_address = self.wallet_provider.get_address()
+            network = self.wallet_provider.get_network()
+            balance = self.wallet_provider.get_balance()
+            provider_name = self.wallet_provider.get_name()
+            
+            wallet_details = {
+                "address": wallet_address,
+                "network": {
+                    "protocol_family": network.protocol_family,
+                    "network_id": network.network_id or "N/A",
+                    "chain_id": network.chain_id if network.chain_id else "N/A"
+                },
+                "balance": str(balance),
+                "provider": provider_name
+            }
             
             return {
                 "status": "success", 
-                "data": {
-                    "wallet_address": self.wallet_provider.get_address(),
-                    "network": self.network_id
-                }
+                "data": wallet_details
             }
         except Exception as e:
             return {"status": "error", "message": str(e)}
