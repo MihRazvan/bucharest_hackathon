@@ -30,6 +30,12 @@ async def root():
 # from app.api.routes import router
 # app.include_router(router)
 
+# At the bottom of the imports
+from app.api.test_routes import router as test_router
+
+# After the app initialization
+app.include_router(test_router)
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run("app.main:app", host="0.0.0.0", port=8000, reload=True)
