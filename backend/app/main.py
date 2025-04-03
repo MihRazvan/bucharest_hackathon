@@ -32,9 +32,11 @@ async def root():
 
 # At the bottom of the imports
 from app.api.test_routes import router as test_router
+from app.api.token_routes import router as token_router
 
 # After the app initialization
 app.include_router(test_router)
+app.include_router(token_router, prefix="/api")
 
 if __name__ == "__main__":
     import uvicorn
