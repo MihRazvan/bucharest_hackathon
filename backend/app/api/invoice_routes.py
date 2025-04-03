@@ -7,7 +7,7 @@ router = APIRouter()
 class InvoiceRequest(BaseModel):
     payee: str
     amount: str
-    invoice_currency: str = "USD"
+    invoice_currency: str = "ETH-base-base"
     payment_currency: str = "ETH-base-base"
 
 @router.post("/invoices")
