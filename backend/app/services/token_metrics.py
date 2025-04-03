@@ -1,4 +1,5 @@
 import os
+from dotenv import load_dotenv
 from tmai_api import TokenMetricsClient
 from datetime import datetime, timedelta
 
@@ -74,4 +75,4 @@ class TokenMetricsService:
         except Exception as e:
             return {"status": "error", "message": str(e)}
 
-token_metrics = TokenMetricsService()
+token_metrics_service = TokenMetricsService()
