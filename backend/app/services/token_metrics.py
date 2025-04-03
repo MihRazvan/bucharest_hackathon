@@ -17,7 +17,7 @@ class TokenMetricsService:
             tokens = self.client.tokens.get_dataframe(symbol=symbol)
             if tokens.empty:
                 return {"status": "error", "message": f"No data available for {symbol}"}
-            latest = tokens.iloc[0]
+            latest = tokens.iloc[0].to_dict()
             return {
                 "status": "success",
                 "token_info": {
