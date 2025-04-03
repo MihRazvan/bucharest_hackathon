@@ -5,11 +5,12 @@ from coinbase_agentkit import (
     AgentKit,
     AgentKitConfig,
     SmartWalletProvider,
-    SmartWalletProviderConfig,
+    SmartWalletProviderConfig, 
     wallet_action_provider,
 )
 from eth_account.account import Account
 import json
+from cdp import Cdp  # Import CDP directly to configure it
 
 class AgentService:
     """Simple service for accessing AgentKit functionality"""
@@ -51,6 +52,21 @@ class AgentService:
             print(f"Initializing with network: {self.network_id}")
             print(f"Signer address: {signer.address}")
             print(f"Smart wallet address: {smart_wallet_address or 'Not created yet'}")
+            
+            # Explicitly configure CDP with API keys from env variables
+            api_key_name = os.getenv("CDP_API_KEY_NAME")
+            api_key_private_key = os.getenv("CDP_API_KEY_PRIVATE_KEY")
+            
+            if not api_key_name or not api_key_private_key:
+                raise ValueError("CDP API keys not found in environment variables")
+                
+            print(f"Configuring CDP with API key name: {api_key_name}")
+            # Configure CDP globally
+            Cdp.configure(
+                api_key_name=api_key_name,
+                private_key=api_key_private_key.replace("\\n", "\n"),
+                source="agentkit"
+            )
             
             # Initialize SmartWalletProvider
             self.wallet_provider = SmartWalletProvider(
@@ -132,6 +148,28 @@ class AgentService:
                 "wallet", "get_balance", {}
             )
             return {"status": "success", "data": balance}
+        except Exception as e:
+            return {"status": "error", "message": str(e)}
+
+    def request_faucet_funds(self):
+        """Request testnet funds from the CDP faucet"""
+        try:
+            if not self.agent_kit:
+                # Try to initialize again if it failed before
+                if not self.initialize_agent():
+                    return {"status": "error", "message": "Agent initialization failed"}
+            
+            # Check if we're on a testnet
+            if "sepolia" not in self.network_id.lower() and "testnet" not in self.network_id.lower():
+                return {"status": "error", "message": "Faucet is only available on testnets"}
+                
+            # Request funds
+            result = self.agent_kit.execute_action(
+                "cdp_api", "request_faucet_funds", 
+                {"asset_id": None}  # Default to ETH
+            )
+            
+            return {"status": "success", "data": result}
         except Exception as e:
             return {"status": "error", "message": str(e)}
 
