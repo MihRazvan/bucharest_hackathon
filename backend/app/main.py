@@ -29,10 +29,12 @@ async def root():
 from app.api.test_routes import router as test_router
 from app.api.token_routes import router as token_router
 from app.api.invoice_routes import router as request_router
+from app.api.agent_routes import router as agent_router
 
 app.include_router(test_router)
 app.include_router(token_router, prefix="/api")
 app.include_router(request_router, prefix="/api")
+app.include_router(agent_router, prefix="/api")
 
 if __name__ == "__main__":
     import uvicorn
