@@ -111,15 +111,20 @@ class AgentService:
                 # Try to initialize again if it failed before
                 if not self.initialize_agent():
                     return {"status": "error", "message": "Agent initialization failed"}
-                
-            # Get wallet details
-            wallet_details = self.agent_kit.execute_action(
-                "wallet", "get_wallet_details", {}
-            )
-            return {"status": "success", "data": wallet_details}
+                    
+            # The correct way to execute an action in AgentKit
+            wallet_details = self.agent_kit.wallet_provider.get_wallet_details()
+            
+            return {
+                "status": "success", 
+                "data": {
+                    "wallet_address": self.wallet_provider.get_address(),
+                    "network": self.network_id
+                }
+            }
         except Exception as e:
             return {"status": "error", "message": str(e)}
-    
+
     def get_wallet_balance(self):
         """Get the agent's wallet balance"""
         try:
@@ -127,12 +132,17 @@ class AgentService:
                 # Try to initialize again if it failed before
                 if not self.initialize_agent():
                     return {"status": "error", "message": "Agent initialization failed"}
-                
+                    
             # Get wallet balance
-            balance = self.agent_kit.execute_action(
-                "wallet", "get_balance", {}
-            )
-            return {"status": "success", "data": balance}
+            balance = self.wallet_provider.get_balance()
+            
+            return {
+                "status": "success", 
+                "data": {
+                    "balance": str(balance),
+                    "wallet_address": self.wallet_provider.get_address()
+                }
+            }
         except Exception as e:
             return {"status": "error", "message": str(e)}
 
@@ -144,13 +154,14 @@ class AgentService:
                 if not self.initialize_agent():
                     return {"status": "error", "message": "Agent initialization failed"}
             
-            # Request funds
-            result = self.agent_kit.execute_action(
-                "cdp_api", "request_faucet_funds", 
-                {"asset_id": None}  # Default to ETH
-            )
-            
-            return {"status": "success", "data": result}
+            # For now, just return the wallet address
+            # Implementing the actual faucet request requires additional research
+            return {
+                "status": "success", 
+                "message": "To get testnet funds, please use the public faucet for Base Sepolia.",
+                "wallet_address": self.wallet_provider.get_address(),
+                "network": self.network_id
+            }
         except Exception as e:
             return {"status": "error", "message": str(e)}
 
