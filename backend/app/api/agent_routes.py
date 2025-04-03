@@ -20,3 +20,14 @@ async def get_wallet_balance():
     if result["status"] == "error":
         raise HTTPException(status_code=500, detail=result["message"])
     return result
+
+@router.get("/status")
+async def get_agent_status():
+    """Get the status of the agent service"""
+    return {
+        "status": "success",
+        "agent_initialized": agent_service.agent_kit is not None,
+        "network_id": agent_service.network_id,
+        "wallet_provider": agent_service.wallet_provider is not None,
+        "wallet_address": agent_service.wallet_provider.get_address() if agent_service.wallet_provider else None
+    }
