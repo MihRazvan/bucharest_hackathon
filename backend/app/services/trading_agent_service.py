@@ -364,6 +364,87 @@ Keep your answers precise and actionable. These trades need to be executed autom
             "status": "success",
             "trade_history": self.trade_history
         }
+    
+    async def trade_idle_funds(self, strategy_id, amount_to_trade, private_key):
+        """Execute a trade of idle funds"""
+        try:
+            if not self.vault_contract:
+                return {"status": "error", "message": "Contract not initialized"}
+                
+            # Get the account from the private key
+            account = self.w3.eth.account.from_key(private_key)
+            
+            # Build the transaction
+            tx = self.vault_contract.functions.tradeIdleFunds(
+                strategy_id,
+                amount_to_trade
+            ).build_transaction({
+                'from': account.address,
+                'gas': 200000,
+                'gasPrice': self.w3.eth.gas_price,
+                'nonce': self.w3.eth.get_transaction_count(account.address)
+            })
+            
+            # Sign the transaction
+            signed_tx = self.w3.eth.account.sign_transaction(tx, private_key)
+            
+            # Send the transaction
+            tx_hash = self.w3.eth.send_raw_transaction(signed_tx.rawTransaction)
+            
+            # Wait for transaction receipt
+            receipt = self.w3.eth.wait_for_transaction_receipt(tx_hash)
+            
+            return {
+                "status": "success",
+                "data": {
+                    "tx_hash": tx_hash.hex(),
+                    "block_number": receipt.blockNumber,
+                    "gas_used": receipt.gasUsed,
+                    "status": receipt.status
+                }
+            }
+        except Exception as e:
+            return {"status": "error", "message": str(e)}
+    
+    async def report_trading_profit(self, profit_amount, private_key):
+        """Report profit from trading"""
+        try:
+            if not self.vault_contract:
+                return {"status": "error", "message": "Contract not initialized"}
+                
+            # Get the account from the private key
+            account = self.w3.eth.account.from_key(private_key)
+            
+            # Build the transaction
+            tx = self.vault_contract.functions.reportTradingProfit(
+                profit_amount
+            ).build_transaction({
+                'from': account.address,
+                'gas': 200000,
+                'gasPrice': self.w3.eth.gas_price,
+                'nonce': self.w3.eth.get_transaction_count(account.address)
+            })
+            
+            # Sign the transaction
+            signed_tx = self.w3.eth.account.sign_transaction(tx, private_key)
+            
+            # Send the transaction
+            tx_hash = self.w3.eth.send_raw_transaction(signed_tx.rawTransaction)
+            
+            # Wait for transaction receipt
+            receipt = self.w3.eth.wait_for_transaction_receipt(tx_hash)
+            
+            return {
+                "status": "success",
+                "data": {
+                    "tx_hash": tx_hash.hex(),
+                    "block_number": receipt.blockNumber,
+                    "gas_used": receipt.gasUsed,
+                    "status": receipt.status
+                }
+            }
+        except Exception as e:
+            return {"status": "error", "message": str(e)}
 
 # Create a single instance to be used throughout the application
 trading_agent_service = TradingAgentService()
