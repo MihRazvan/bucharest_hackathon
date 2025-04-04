@@ -275,7 +275,7 @@ Keep your answers precise and actionable. These trades need to be executed autom
         }
     
     async def execute_trade(self, plan_id):
-        """Execute a trade based on the trading plan"""
+        """Execute a trade based on the trading plan (mocked)"""
         try:
             # Find the trading plan
             plan = next((p for p in self.trade_history if p.get("id") == plan_id), None)
@@ -291,17 +291,19 @@ Keep your answers precise and actionable. These trades need to be executed autom
                     "execution_details": plan.get("execution_details", {})
                 }
             
-            # Simulate trade execution
-            # In a real implementation, we would use AgentKit to execute trades
+            # Mock trade execution - this replaces the real AgentKit execution
             
-            # Check if we have agent initialized
-            if not agent_service.agent_kit:
-                return {"status": "error", "message": "Agent not initialized"}
-                
-            # Get wallet details
+            # Get wallet details from agent service (only for address info)
             wallet_details = agent_service.get_wallet_details()
             if wallet_details["status"] == "error":
-                return wallet_details
+                # Create mock wallet details if agent not initialized
+                wallet_details = {
+                    "status": "success",
+                    "data": {
+                        "address": "0x" + os.urandom(20).hex(),
+                        "network": {"network_id": "base-sepolia"}
+                    }
+                }
                 
             parsed_plan = plan.get("parsed_plan", {})
             
@@ -344,7 +346,7 @@ Keep your answers precise and actionable. These trades need to be executed autom
             
             return {
                 "status": "success",
-                "message": "Trading plan executed successfully",
+                "message": "Trading plan executed successfully (mocked)",
                 "plan_id": plan_id,
                 "execution_details": execution_details
             }
@@ -352,99 +354,58 @@ Keep your answers precise and actionable. These trades need to be executed autom
             return {"status": "error", "message": str(e)}
     
     async def get_active_positions(self):
-        """Get all active trading positions"""
+        """Get all active trading positions (mocked)"""
         return {
             "status": "success",
             "active_positions": self.active_positions
         }
     
     async def get_trade_history(self):
-        """Get trading history"""
+        """Get trading history (mocked)"""
         return {
             "status": "success",
             "trade_history": self.trade_history
         }
     
-    async def trade_idle_funds(self, strategy_id, amount_to_trade, private_key):
-        """Execute a trade of idle funds"""
-        try:
-            if not self.vault_contract:
-                return {"status": "error", "message": "Contract not initialized"}
+    async def get_performance_stats(self):
+        """Get performance statistics (mocked)"""
+        # Create mock stats for the dashboard
+        total_trades = len(self.trade_history)
+        successful_trades = total_trades * 0.7  # 70% success rate
+        
+        # Calculate mock profit
+        total_profit_percentage = 0
+        total_traded_amount = 0
+        
+        for plan in self.trade_history:
+            if plan.get("executed", False):
+                amount = plan.get("idle_funds_amount", 0)
+                total_traded_amount += amount
                 
-            # Get the account from the private key
-            account = self.w3.eth.account.from_key(private_key)
-            
-            # Build the transaction
-            tx = self.vault_contract.functions.tradeIdleFunds(
-                strategy_id,
-                amount_to_trade
-            ).build_transaction({
-                'from': account.address,
-                'gas': 200000,
-                'gasPrice': self.w3.eth.gas_price,
-                'nonce': self.w3.eth.get_transaction_count(account.address)
-            })
-            
-            # Sign the transaction
-            signed_tx = self.w3.eth.account.sign_transaction(tx, private_key)
-            
-            # Send the transaction
-            tx_hash = self.w3.eth.send_raw_transaction(signed_tx.rawTransaction)
-            
-            # Wait for transaction receipt
-            receipt = self.w3.eth.wait_for_transaction_receipt(tx_hash)
-            
-            return {
-                "status": "success",
-                "data": {
-                    "tx_hash": tx_hash.hex(),
-                    "block_number": receipt.blockNumber,
-                    "gas_used": receipt.gasUsed,
-                    "status": receipt.status
-                }
+                # Generate random profit between -5% and +15%
+                import random
+                profit_percentage = random.uniform(-5, 15)
+                total_profit_percentage += profit_percentage * amount
+        
+        # Calculate weighted average profit percentage
+        avg_profit_percentage = 0
+        if total_traded_amount > 0:
+            avg_profit_percentage = total_profit_percentage / total_traded_amount
+        
+        return {
+            "status": "success",
+            "performance": {
+                "total_trades": total_trades,
+                "successful_trades": int(successful_trades),
+                "avg_profit_percentage": round(avg_profit_percentage, 2),
+                "total_profit_eth": round(total_traded_amount * avg_profit_percentage / 100, 4),
+                "uptime_days": 30,  # Mock value
+                "trade_frequency": "2.5 per day",  # Mock value
+                "best_performing_pair": "ETH/USDT",  # Mock value
+                "worst_performing_pair": "LINK/USDT",  # Mock value
+                "last_updated": datetime.now().isoformat()
             }
-        except Exception as e:
-            return {"status": "error", "message": str(e)}
-    
-    async def report_trading_profit(self, profit_amount, private_key):
-        """Report profit from trading"""
-        try:
-            if not self.vault_contract:
-                return {"status": "error", "message": "Contract not initialized"}
-                
-            # Get the account from the private key
-            account = self.w3.eth.account.from_key(private_key)
-            
-            # Build the transaction
-            tx = self.vault_contract.functions.reportTradingProfit(
-                profit_amount
-            ).build_transaction({
-                'from': account.address,
-                'gas': 200000,
-                'gasPrice': self.w3.eth.gas_price,
-                'nonce': self.w3.eth.get_transaction_count(account.address)
-            })
-            
-            # Sign the transaction
-            signed_tx = self.w3.eth.account.sign_transaction(tx, private_key)
-            
-            # Send the transaction
-            tx_hash = self.w3.eth.send_raw_transaction(signed_tx.rawTransaction)
-            
-            # Wait for transaction receipt
-            receipt = self.w3.eth.wait_for_transaction_receipt(tx_hash)
-            
-            return {
-                "status": "success",
-                "data": {
-                    "tx_hash": tx_hash.hex(),
-                    "block_number": receipt.blockNumber,
-                    "gas_used": receipt.gasUsed,
-                    "status": receipt.status
-                }
-            }
-        except Exception as e:
-            return {"status": "error", "message": str(e)}
+        }
 
 # Create a single instance to be used throughout the application
 trading_agent_service = TradingAgentService()
