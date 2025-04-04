@@ -39,3 +39,27 @@ async def get_trade_history():
     if result["status"] == "error":
         raise HTTPException(status_code=500, detail=result["message"])
     return result
+
+@router.put("/positions/{position_id}/update")
+async def update_position(position_id: str, update_data: dict):
+    """Simulate updating a position's status and profit/loss"""
+    result = await trading_agent_service.update_position(position_id, update_data)
+    if result["status"] == "error":
+        raise HTTPException(status_code=500, detail=result["message"])
+    return result
+    
+@router.post("/positions/{position_id}/close")
+async def close_position(position_id: str, close_data: dict):
+    """Simulate closing a trading position"""
+    result = await trading_agent_service.close_position(position_id, close_data)
+    if result["status"] == "error":
+        raise HTTPException(status_code=500, detail=result["message"])
+    return result
+
+@router.get("/performance")
+async def get_trading_performance():
+    """Get mocked trading performance stats"""
+    result = await trading_agent_service.get_performance_stats()
+    if result["status"] == "error":
+        raise HTTPException(status_code=500, detail=result["message"])
+    return result
