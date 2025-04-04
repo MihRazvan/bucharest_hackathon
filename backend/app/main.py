@@ -32,6 +32,7 @@ from app.api.invoice_routes import router as request_router
 from app.api.agent_routes import router as agent_router
 from app.api.rate_routes import router as rate_router
 from app.api.trading_routes import router as trading_router
+from app.api.vault_routes import router as vault_router
 
 
 app.include_router(token_router, prefix="/api")
@@ -39,6 +40,7 @@ app.include_router(request_router, prefix="/api")
 app.include_router(agent_router, prefix="/api")
 app.include_router(rate_router, prefix="/api")
 app.include_router(trading_router, prefix="/api")
+app.include_router(vault_router, prefix="/api")
 
 if __name__ == "__main__":
     import uvicorn
