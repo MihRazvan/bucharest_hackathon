@@ -1,20 +1,20 @@
-from fastapi import APIRouter, HTTPException, Body
+from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel, Field
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, List
 from datetime import datetime, timedelta
 import uuid
 
 from app.services import request_network
 from app.services.rate_agent_service import rate_agent_service
 
-router = APIRouter(prefix="/invoices", tags=["Invoices and Factoring"])
+router = APIRouter(tags=["Invoices and Factoring"])
 
 class InvoiceRequest(BaseModel):
     payee: str = Field(..., description="Wallet address of the payee")
     amount: str = Field(..., description="Invoice amount")
     payer: Optional[str] = Field(None, description="Wallet address of the payer (optional)")
-    invoice_currency: str = Field("USD", description="Invoice currency")
-    payment_currency: str = Field("ETH-sepolia-sepolia", description="Payment currency")
+    invoice_currency: str = Field("ETH-base-base", description="Invoice currency")
+    payment_currency: str = Field("ETH-base-base", description="Payment currency")
     due_date: Optional[str] = Field(None, description="Invoice due date (ISO format)")
 
 class FactoringOfferRequest(BaseModel):
@@ -28,63 +28,44 @@ class AcceptFactoringRequest(BaseModel):
 # In-memory storage for factoring offers (would use a database in production)
 factoring_offers = {}
 
-@router.post("/create")
-async def create_invoice_endpoint(invoice: InvoiceRequest):
+@router.get("/network/invoice-config")
+async def get_invoice_network_config():
     """
-    Create a new invoice using Request Network
+    Get the network configuration for invoicing
+    
+    Returns information about the network used for invoicing (Base Mainnet)
     """
     try:
-        data = request_network.create_invoice(
-            payee=invoice.payee,
-            amount=invoice.amount,
-            invoice_currency=invoice.invoice_currency,
-            payment_currency=invoice.payment_currency,
-            payer=invoice.payer
-        )
+        network_info = request_network.get_network_info()
         return {
-            "status": "success", 
-            "message": "Invoice created successfully",
-            "data": data
+            "status": "success",
+            "message": "Invoice transactions are on Base Mainnet, liquidity pool and trading on Base Sepolia",
+            "data": {
+                "invoice_network": network_info,
+                "liquidity_network": {
+                    "name": "Base Sepolia",
+                    "chainId": 84532,
+                    "currency": "ETH",
+                    "rpcUrl": "https://sepolia.base.org",
+                    "blockExplorer": "https://sepolia.basescan.org"
+                }
+            }
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@router.get("/{payment_reference}")
-async def get_invoice_status(payment_reference: str):
-    """
-    Get the status of an invoice
-    """
-    try:
-        data = request_network.get_invoice_status(payment_reference)
-        return {
-            "status": "success", 
-            "data": data
-        }
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
 
-@router.get("/{payment_reference}/payment-data")
-async def get_payment_data(payment_reference: str):
-    """
-    Get the payment calldata for an invoice
-    """
-    try:
-        data = request_network.get_payment_calldata(payment_reference)
-        return {
-            "status": "success", 
-            "data": data
-        }
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
-@router.post("/{payment_reference}/factoring-offer")
-async def create_factoring_offer(payment_reference: str, request: Optional[FactoringOfferRequest] = None):
+@router.post("/factoring/offers")
+async def create_factoring_offer(request: FactoringOfferRequest):
     """
     Create a factoring offer for an invoice
+    
+    Generates a factoring offer with advance amount and fee based on
+    Token Metrics market sentiment data.
     """
     try:
         # Get invoice details
-        invoice_data = request_network.get_invoice_status(payment_reference)
+        invoice_data = request_network.get_invoice_status(request.payment_reference)
         
         if invoice_data.get("hasBeenPaid", False):
             return {
@@ -100,25 +81,21 @@ async def create_factoring_offer(payment_reference: str, request: Optional[Facto
         rates = rates_response["rates"]
         
         # Use custom rates if provided, otherwise use AI recommended rates
-        if request and request.advance_percentage is not None:
+        if request.advance_percentage is not None:
             advance_percentage = request.advance_percentage
         else:
             # Use the middle of the recommended range
             advance_percentage = (rates["advance_percentage"][0] + rates["advance_percentage"][1]) / 2
             
-        if request and request.factoring_fee is not None:
+        if request.factoring_fee is not None:
             factoring_fee = request.factoring_fee
         else:
             # Use the middle of the recommended range
             factoring_fee = (rates["fee_range"][0] + rates["fee_range"][1]) / 2
         
-        # Extract invoice amount (assuming it's in the invoice_data)
-        # This would need to be adapted based on actual Request Network response format
-        # For now, we'll mock it
-        
-        # Mock invoice amount calculation
-        # In a real implementation, we would extract this from invoice_data
-        invoice_amount = float(100)  # Default mock value
+        # Mock invoice amount (since we don't know exactly how to extract it from invoice_data)
+        # In a real implementation, you'd extract this value correctly from the response
+        invoice_amount = 1.0  # Default 1 ETH if we can't extract it
         
         # Generate offer
         offer = request_network.calculate_factoring_offer(
@@ -132,7 +109,7 @@ async def create_factoring_offer(payment_reference: str, request: Optional[Facto
         offer_id = str(uuid.uuid4())
         full_offer = {
             "offer_id": offer_id,
-            "payment_reference": payment_reference,
+            "payment_reference": request.payment_reference,
             "status": "pending",
             "created_at": datetime.now().isoformat(),
             "expires_at": (datetime.now() + timedelta(hours=24)).isoformat(),
@@ -151,10 +128,13 @@ async def create_factoring_offer(payment_reference: str, request: Optional[Facto
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@router.post("/accept-factoring")
+@router.post("/factoring/accept")
 async def accept_factoring_offer(request: AcceptFactoringRequest):
     """
     Accept a factoring offer and initiate the advance payment
+    
+    When an SME accepts a factoring offer, the system advances them
+    the agreed-upon portion of the invoice amount.
     """
     try:
         # Get the offer
@@ -171,12 +151,9 @@ async def accept_factoring_offer(request: AcceptFactoringRequest):
                 "message": f"Offer is no longer pending, current status: {offer['status']}"
             }
         
-        # In a real implementation, this would:
-        # 1. Transfer the advance amount to the SME
-        # 2. Record the factoring agreement on-chain
-        # 3. Update the status of the offer
+        # In a real implementation, this would transfer funds from vault to SME
         
-        # For now, we'll just update the status
+        # Update the status
         offer["status"] = "accepted"
         offer["accepted_at"] = datetime.now().isoformat()
         
@@ -185,6 +162,7 @@ async def accept_factoring_offer(request: AcceptFactoringRequest):
             "message": "Factoring offer accepted",
             "data": {
                 "offer_id": request.offer_id,
+                "payment_reference": offer["payment_reference"],
                 "advance_amount": offer["advance_amount"],
                 "factoring_fee": offer["factoring_fee_amount"],
                 "accepted_at": offer["accepted_at"]
@@ -193,7 +171,7 @@ async def accept_factoring_offer(request: AcceptFactoringRequest):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@router.get("/offers/{offer_id}")
+@router.get("/factoring/offers/{offer_id}")
 async def get_factoring_offer(offer_id: str):
     """
     Get details of a specific factoring offer
@@ -207,7 +185,7 @@ async def get_factoring_offer(offer_id: str):
         "data": offer
     }
 
-@router.get("/offers")
+@router.get("/factoring/offers")
 async def list_factoring_offers():
     """
     List all factoring offers (for demo purposes)
@@ -216,3 +194,115 @@ async def list_factoring_offers():
         "status": "success",
         "data": list(factoring_offers.values())
     }
+
+@router.post("/simulate-payment/{payment_reference}")
+async def simulate_payment(payment_reference: str, status: str = Query("paid", description="Payment status to simulate (paid, pending, failed)")):
+    """
+    Simulate an invoice payment (for demo purposes)
+    
+    This endpoint simulates a payment to an invoice, updating its status.
+    """
+    try:
+        # In a real implementation, you would actually check the on-chain status
+        # For the demo, we'll just mock a successful payment
+        data = request_network.mock_payment_status(payment_reference, status)
+        
+        # If we have any factoring offers for this payment reference, update them
+        for offer_id, offer in factoring_offers.items():
+            if offer["payment_reference"] == payment_reference:
+                if status == "paid":
+                    offer["invoice_paid"] = True
+                    offer["payment_timestamp"] = datetime.now().isoformat()
+                    # In a real implementation, this would trigger the final payment
+                    # of the remaining amount to the SME
+                    offer["remaining_amount_paid"] = True
+                    offer["remaining_amount_paid_timestamp"] = datetime.now().isoformat()
+        
+        return {
+            "status": "success",
+            "message": f"Payment simulation successful. Status: {status}",
+            "data": data
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/dashboard-data")
+async def get_dashboard_data():
+    """
+    Get aggregated data for the dashboard
+    
+    Returns statistics about invoices, factoring, and payments for
+    display on the dashboard.
+    """
+    try:
+        # Calculate metrics based on factoring offers
+        total_offers = len(factoring_offers)
+        accepted_offers = sum(1 for o in factoring_offers.values() if o.get('status') == 'accepted')
+        total_factored_amount = sum(o.get('advance_amount', 0) for o in factoring_offers.values() if o.get('status') == 'accepted')
+        total_fees = sum(o.get('factoring_fee_amount', 0) for o in factoring_offers.values() if o.get('status') == 'accepted')
+        
+        # Mock data for the dashboard
+        return {
+            "status": "success",
+            "data": {
+                "total_invoices": total_offers + 5,  # Adding some mock data
+                "total_factored_amount": total_factored_amount + 0.5,  # Adding some mock data
+                "total_fees_earned": total_fees + 0.02,  # Adding some mock data
+                "offers": {
+                    "total": total_offers,
+                    "accepted": accepted_offers,
+                    "pending": total_offers - accepted_offers,
+                    "conversion_rate": (accepted_offers / total_offers * 100) if total_offers > 0 else 0
+                },
+                "average_advance_percentage": 75.5,  # Mock data
+                "average_factoring_fee": 3.2,  # Mock data
+                "recent_activity": [
+                    {
+                        "type": "invoice_created",
+                        "timestamp": (datetime.now() - timedelta(hours=2)).isoformat(),
+                        "amount": 1.2,
+                        "currency": "ETH"
+                    },
+                    {
+                        "type": "offer_accepted",
+                        "timestamp": (datetime.now() - timedelta(hours=3)).isoformat(),
+                        "amount": 0.8,
+                        "currency": "ETH"
+                    },
+                    {
+                        "type": "payment_received",
+                        "timestamp": (datetime.now() - timedelta(hours=5)).isoformat(),
+                        "amount": 1.5,
+                        "currency": "ETH"
+                    }
+                ]
+            }
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    
+
+@router.post("/invoices/create")
+async def create_invoice_endpoint(invoice: InvoiceRequest):
+    """Create a new invoice using Request Network"""
+    try:
+        # Default to ETH-base-base for both currencies
+        invoice_currency = "ETH-base-base"
+        payment_currency = "ETH-base-base"
+        
+        data = request_network.create_invoice(
+            payee=invoice.payee,
+            amount=invoice.amount,
+            invoice_currency=invoice_currency,
+            payment_currency=payment_currency,
+            payer=invoice.payer
+            # Skip due_date for now until we confirm it works
+        )
+        return {
+            "status": "success", 
+            "message": "Invoice created successfully",
+            "data": data
+        }
+    except Exception as e:
+        print(f"Error creating invoice: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))

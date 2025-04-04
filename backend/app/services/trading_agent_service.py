@@ -275,7 +275,7 @@ Keep your answers precise and actionable. These trades need to be executed autom
         }
     
     async def execute_trade(self, plan_id):
-        """Simulate trade execution with realistic data"""
+        """Execute a trade based on the trading plan (mocked)"""
         try:
             # Find the trading plan
             plan = next((p for p in self.trade_history if p.get("id") == plan_id), None)
@@ -290,70 +290,53 @@ Keep your answers precise and actionable. These trades need to be executed autom
                     "plan_id": plan_id,
                     "execution_details": plan.get("execution_details", {})
                 }
-                
-            # Get wallet details
+            
+            # Mock trade execution - this replaces the real AgentKit execution
+            
+            # Get wallet details from agent service (only for address info)
             wallet_details = agent_service.get_wallet_details()
             if wallet_details["status"] == "error":
-                return wallet_details
+                # Create mock wallet details if agent not initialized
+                wallet_details = {
+                    "status": "success",
+                    "data": {
+                        "address": "0x" + os.urandom(20).hex(),
+                        "network": {"network_id": "base-sepolia"}
+                    }
+                }
                 
             parsed_plan = plan.get("parsed_plan", {})
             
-            # Generate mock transaction data with timestamps
+            # Record execution details
             execution_details = {
                 "timestamp": datetime.now().isoformat(),
                 "wallet_address": wallet_details["data"]["address"],
                 "network": wallet_details["data"]["network"]["network_id"],
-                "trades": [],
-                "total_value_traded": 0
+                "trades": []
             }
             
-            # Generate realistic mock trades based on the plan
+            # Simulate trades for each pair
             for pair in parsed_plan.get("trading_pairs", []):
-                # Get position size
-                position_size_pct = parsed_plan.get("max_positions", {}).get(pair, 25)
-                position_size = float(plan.get("idle_funds_amount", 1.0)) * position_size_pct / 100
+                trade = {
+                    "pair": pair,
+                    "position_size": parsed_plan.get("max_positions", {}).get(pair, "Unknown"),
+                    "entry_time": datetime.now().isoformat(),
+                    "status": "opened",
+                    "tx_hash": f"0x{os.urandom(32).hex()}"  # Simulated transaction hash
+                }
                 
-                # Generate mock entry/exit prices
-                if '/' in pair:
-                    base, quote = pair.split('/')
-                    
-                    # Mock realistic entry details
-                    entry_price = self._generate_mock_price(base)
-                    exit_target = entry_price * 1.05  # 5% profit target
-                    stop_loss = entry_price * 0.97   # 3% stop loss
-                    
-                    # Mock transaction with gas and other realistic details
-                    trade = {
-                        "pair": pair,
-                        "position_size": position_size_pct,
-                        "position_value": position_size,
-                        "entry_time": datetime.now().isoformat(),
-                        "entry_price": entry_price,
-                        "exit_target": exit_target,
-                        "stop_loss": stop_loss,
-                        "status": "opened",
-                        "tx_hash": f"0x{os.urandom(32).hex()}",
-                        "gas_used": random.randint(50000, 150000),
-                        "gas_price": 2500000000  # 2.5 gwei
-                    }
-                    
-                    execution_details["trades"].append(trade)
-                    execution_details["total_value_traded"] += position_size
-                    
-                    # Add to active positions
-                    self.active_positions.append({
-                        "plan_id": plan_id,
-                        "pair": pair,
-                        "entry_time": datetime.now().isoformat(),
-                        "position_size": position_size_pct,
-                        "position_value": position_size,
-                        "entry_price": entry_price,
-                        "exit_target": exit_target,
-                        "stop_loss": stop_loss,
-                        "status": "active",
-                        "profit_loss": 0,
-                        "current_price": entry_price
-                    })
+                execution_details["trades"].append(trade)
+                
+                # Add to active positions
+                self.active_positions.append({
+                    "plan_id": plan_id,
+                    "pair": pair,
+                    "entry_time": datetime.now().isoformat(),
+                    "position_size": parsed_plan.get("max_positions", {}).get(pair, 0),
+                    "stop_loss": parsed_plan.get("stop_losses", {}).get(pair, "Unknown"),
+                    "exit_point": parsed_plan.get("exit_points", {}).get(pair, "Unknown"),
+                    "status": "active"
+                })
             
             # Mark plan as executed
             plan["executed"] = True
@@ -361,250 +344,68 @@ Keep your answers precise and actionable. These trades need to be executed autom
             plan["execution_details"] = execution_details
             self.save_data()
             
-            # Update contract's totalTraded stats if needed
-            # This could be a simulated call to the contract
-            
             return {
                 "status": "success",
-                "message": "Trading plan executed successfully",
+                "message": "Trading plan executed successfully (mocked)",
                 "plan_id": plan_id,
                 "execution_details": execution_details
             }
         except Exception as e:
             return {"status": "error", "message": str(e)}
-            
-    def _generate_mock_price(self, token):
-        """Generate a realistic mock price for a token"""
-        # You could hardcode these or pull from a static JSON
-        price_map = {
-            "ETH": 3142.50,
-            "BTC": 61285.75,
-            "LINK": 15.32,
-            "MATIC": 0.64,
-            "AAVE": 91.45,
-            "UNI": 7.22,
-            "SOL": 149.83,
-        }
-        # Add small random variation to price
-        base_price = price_map.get(token, 1.0)
-        variation = random.uniform(-0.05, 0.05)  # ±5%
-        return base_price * (1 + variation)
     
     async def get_active_positions(self):
-        """Get all active trading positions"""
+        """Get all active trading positions (mocked)"""
         return {
             "status": "success",
             "active_positions": self.active_positions
         }
     
     async def get_trade_history(self):
-        """Get trading history"""
+        """Get trading history (mocked)"""
         return {
             "status": "success",
             "trade_history": self.trade_history
         }
     
-    async def trade_idle_funds(self, strategy_id, amount_to_trade, private_key):
-        """Execute a trade of idle funds"""
-        try:
-            if not self.vault_contract:
-                return {"status": "error", "message": "Contract not initialized"}
-                
-            # Get the account from the private key
-            account = self.w3.eth.account.from_key(private_key)
-            
-            # Build the transaction
-            tx = self.vault_contract.functions.tradeIdleFunds(
-                strategy_id,
-                amount_to_trade
-            ).build_transaction({
-                'from': account.address,
-                'gas': 200000,
-                'gasPrice': self.w3.eth.gas_price,
-                'nonce': self.w3.eth.get_transaction_count(account.address)
-            })
-            
-            # Sign the transaction
-            signed_tx = self.w3.eth.account.sign_transaction(tx, private_key)
-            
-            # Send the transaction
-            tx_hash = self.w3.eth.send_raw_transaction(signed_tx.rawTransaction)
-            
-            # Wait for transaction receipt
-            receipt = self.w3.eth.wait_for_transaction_receipt(tx_hash)
-            
-            return {
-                "status": "success",
-                "data": {
-                    "tx_hash": tx_hash.hex(),
-                    "block_number": receipt.blockNumber,
-                    "gas_used": receipt.gasUsed,
-                    "status": receipt.status
-                }
-            }
-        except Exception as e:
-            return {"status": "error", "message": str(e)}
-    
-    async def report_trading_profit(self, profit_amount, private_key):
-        """Report profit from trading"""
-        try:
-            if not self.vault_contract:
-                return {"status": "error", "message": "Contract not initialized"}
-                
-            # Get the account from the private key
-            account = self.w3.eth.account.from_key(private_key)
-            
-            # Build the transaction
-            tx = self.vault_contract.functions.reportTradingProfit(
-                profit_amount
-            ).build_transaction({
-                'from': account.address,
-                'gas': 200000,
-                'gasPrice': self.w3.eth.gas_price,
-                'nonce': self.w3.eth.get_transaction_count(account.address)
-            })
-            
-            # Sign the transaction
-            signed_tx = self.w3.eth.account.sign_transaction(tx, private_key)
-            
-            # Send the transaction
-            tx_hash = self.w3.eth.send_raw_transaction(signed_tx.rawTransaction)
-            
-            # Wait for transaction receipt
-            receipt = self.w3.eth.wait_for_transaction_receipt(tx_hash)
-            
-            return {
-                "status": "success",
-                "data": {
-                    "tx_hash": tx_hash.hex(),
-                    "block_number": receipt.blockNumber,
-                    "gas_used": receipt.gasUsed,
-                    "status": receipt.status
-                }
-            }
-        except Exception as e:
-            return {"status": "error", "message": str(e)}
-        
-    async def update_position(self, position_id, update_data):
-        """Simulate updating a position with new price data"""
-        try:
-            # Find the position
-            position = next((p for p in self.active_positions if p.get("id") == position_id), None)
-            if not position:
-                return {"status": "error", "message": "Position not found"}
-                
-            # Update the position with new data
-            if "current_price" in update_data:
-                position["current_price"] = update_data["current_price"]
-                
-                # Calculate profit/loss
-                entry_price = position.get("entry_price", 0)
-                if entry_price > 0:
-                    position["profit_loss_pct"] = (position["current_price"] - entry_price) / entry_price * 100
-                    position["profit_loss"] = position["position_value"] * position["profit_loss_pct"] / 100
-                    
-            # Save updated positions
-            self.save_data()
-            
-            return {
-                "status": "success",
-                "message": "Position updated",
-                "position": position
-            }
-        except Exception as e:
-            return {"status": "error", "message": str(e)}
-            
-    async def close_position(self, position_id, close_data):
-        """Simulate closing a position with profit/loss"""
-        try:
-            # Find the position
-            position = next((p for p in self.active_positions if p.get("id") == position_id), None)
-            if not position:
-                return {"status": "error", "message": "Position not found"}
-                
-            # Set the closing price
-            if "exit_price" in close_data:
-                position["exit_price"] = close_data["exit_price"]
-            else:
-                # Generate a realistic exit price
-                exit_price = position.get("current_price") or position.get("entry_price")
-                position["exit_price"] = exit_price * (1 + random.uniform(-0.02, 0.04))
-                
-            # Calculate final profit/loss
-            entry_price = position.get("entry_price", 0)
-            if entry_price > 0:
-                position["profit_loss_pct"] = (position["exit_price"] - entry_price) / entry_price * 100
-                position["profit_loss"] = position["position_value"] * position["profit_loss_pct"] / 100
-                
-            # Mark position as closed
-            position["status"] = "closed"
-            position["close_time"] = datetime.now().isoformat()
-            
-            # Generate a mock transaction hash
-            position["close_tx_hash"] = f"0x{os.urandom(32).hex()}"
-            
-            # Move from active positions to history
-            self.active_positions = [p for p in self.active_positions if p.get("id") != position_id]
-            self.trade_history.append(position)
-            
-            self.save_data()
-            
-            return {
-                "status": "success",
-                "message": "Position closed",
-                "position": position
-            }
-        except Exception as e:
-            return {"status": "error", "message": str(e)}
-        
     async def get_performance_stats(self):
-        """Generate trading performance statistics"""
-        try:
-            # Calculate stats from trade history
-            # total_trades = len(self.trade_history)
-            # winning_trades = len([t for t in self.trade_history if t.get("profit_loss", 0) > 0])
-            # losing_trades = len([t for t in self.trade_history if t.get("profit_loss", 0) < 0])
-
-            total_trades = 0
-            
-            # If no history, generate realistic mock stats
-            if total_trades == 0:
-                return {
-                    "status": "success",
-                    "stats": {
-                        "total_trades": 27,
-                        "winning_trades": 18,
-                        "losing_trades": 9,
-                        "win_rate": 66.7,
-                        "profit_loss": 0.42,  # ETH
-                        "roi": 12.8,  # Percentage
-                        "largest_profit": 0.18,  # ETH
-                        "largest_loss": 0.11,  # ETH
-                        "average_trade_duration": 134,  # Minutes
-                        "best_pair": "ETH/BTC",
-                        "worst_pair": "ETH/MATIC"
-                    }
-                }
+        """Get performance statistics (mocked)"""
+        # Create mock stats for the dashboard
+        total_trades = len(self.trade_history)
+        successful_trades = total_trades * 0.7  # 70% success rate
+        
+        # Calculate mock profit
+        total_profit_percentage = 0
+        total_traded_amount = 0
+        
+        for plan in self.trade_history:
+            if plan.get("executed", False):
+                amount = plan.get("idle_funds_amount", 0)
+                total_traded_amount += amount
                 
-            # Calculate real stats based on history
-            win_rate = (winning_trades / total_trades * 100) if total_trades > 0 else 0
-            total_profit_loss = sum([t.get("profit_loss", 0) for t in self.trade_history])
-            
-            # More calculations...
-            
-            return {
-                "status": "success",
-                "stats": {
-                    "total_trades": total_trades,
-                    "winning_trades": winning_trades,
-                    "losing_trades": losing_trades,
-                    "win_rate": win_rate,
-                    "profit_loss": total_profit_loss,
-                    # More stats...
-                }
+                # Generate random profit between -5% and +15%
+                import random
+                profit_percentage = random.uniform(-5, 15)
+                total_profit_percentage += profit_percentage * amount
+        
+        # Calculate weighted average profit percentage
+        avg_profit_percentage = 0
+        if total_traded_amount > 0:
+            avg_profit_percentage = total_profit_percentage / total_traded_amount
+        
+        return {
+            "status": "success",
+            "performance": {
+                "total_trades": total_trades,
+                "successful_trades": int(successful_trades),
+                "avg_profit_percentage": round(avg_profit_percentage, 2),
+                "total_profit_eth": round(total_traded_amount * avg_profit_percentage / 100, 4),
+                "uptime_days": 30,  # Mock value
+                "trade_frequency": "2.5 per day",  # Mock value
+                "best_performing_pair": "ETH/USDT",  # Mock value
+                "worst_performing_pair": "LINK/USDT",  # Mock value
+                "last_updated": datetime.now().isoformat()
             }
-        except Exception as e:
-            return {"status": "error", "message": str(e)}
+        }
 
 # Create a single instance to be used throughout the application
 trading_agent_service = TradingAgentService()
