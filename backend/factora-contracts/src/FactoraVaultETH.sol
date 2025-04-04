@@ -10,7 +10,7 @@ import "openzeppelin-contracts/contracts/access/Ownable.sol";
  */
 contract FactoraVaultETH is ERC20, Ownable {
     // Address of the AI agent authorized to trade
-    address public agentAddress;
+    address public agentAddress = 0x709dbF153Ab666000C01c40A044d0ce6824e092c;
 
     // Trading parameters
     uint256 public maxTradingPercentage = 5000; // 50%
@@ -33,9 +33,7 @@ contract FactoraVaultETH is ERC20, Ownable {
      */
     constructor(
         address _agent
-    ) ERC20("Factora LP Token", "FACT") Ownable(msg.sender) {
-        agentAddress = _agent;
-    }
+    ) ERC20("Factora LP Token", "FACT") Ownable(msg.sender) {}
 
     /**
      * @dev Get total assets in the vault (ETH balance)
