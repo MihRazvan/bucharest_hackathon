@@ -135,4 +135,4 @@ web3==7.10.0
 websockets==15.0.1
 widgetsnbextension==4.0.13
 yarl==1.18.3
-openai==1.23.6
+openai==1.70.0
