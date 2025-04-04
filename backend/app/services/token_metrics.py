@@ -80,6 +80,27 @@ class TokenMetricsService:
             }
         except Exception as e:
             return {"status": "error", "message": str(e)}
+        
+    async def get_market_metrics(self, start_date=None, end_date=None):
+        """Get market metrics data"""
+        try:
+            if not end_date:
+                end_date = datetime.now().strftime("%Y-%m-%d")
+            if not start_date:
+                start_date = (datetime.now() - timedelta(days=7)).strftime("%Y-%m-%d")
+
+            metrics = self.client.market_metrics.get_dataframe(
+                startDate=start_date, 
+                endDate=end_date
+            )
+
+            if metrics.empty:
+                return {"status": "error", "message": "No market metrics data available"}
+
+            data = metrics.to_dict(orient="records")
+            return {"status": "success", "market_metrics": data}
+        except Exception as e:
+            return {"status": "error", "message": str(e)}
 
 # Instantiate the service
 token_metrics_service = TokenMetricsService()
