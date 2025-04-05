@@ -53,7 +53,7 @@ https://www.theblock.co/research
 
 ---
 
-### 1Y Revenue Projection Table (1% Comission/Facilitator Fee)
+### Revenue Projection Table (1% Comission/Facilitator Fee)
 
 | Month | Conservative (50 invoices/mo) | Cumulative | Moderate (100 invoices/mo, +10%) | Cumulative | Optimistic (200 invoices/mo, +20%) | Cumulative |
 |-------|-------------------------------|------------|----------------------------------|------------|------------------------------------|------------|
