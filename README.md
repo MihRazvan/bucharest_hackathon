@@ -32,6 +32,20 @@ All powered by [Token Metrics](https://www.tokenmetrics.com/), [Request Network]
 
 ---
 
+## Bounties
+
+- **General Track**: Real Life Utility
+
+- **Token Metrics**: Used to design a transparent and data-driven token economy that optimizes liquidity and incentivizes user engagement.
+
+- **Base**: Leveraged as a secure and scalable Layer 2 blockchain solution to enable fast and low-cost transactions for Pipe It!!.
+
+- **Request Network**: Integrated for seamless invoice issuance and payments, ensuring trustless and efficient financial operations.
+
+- **VIA Labs**: Utilized for cross-chain communication and use of ERC-20 tokens accross the networks.
+
+---
+
 ## User Flow
 
 ![5  user flow](https://github.com/user-attachments/assets/8a5deee7-26fb-4f31-9ef9-26e5fe070309)
