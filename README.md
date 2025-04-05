@@ -4,7 +4,7 @@
 
 **Pipe It!!** is a Base-powered invoice factoring platform with intelligent yield generation. It enables businesses to borrow against their invoices, while allowing investors to earn APY through AI-driven trading strategies.
 
-[Demo Video]() | [Prototype App]() | [Backend](https://bucharest-hackathon.onrender.com) | [Slide Deck]() | [Business Plan]() | [AI Agent Architecture]() | [Trading Strategy]() | [Contribution Guide]() | [Design Files]()
+[Demo Video]() | [Prototype App](https://pipeit.vercel.app) | [Backend](https://bucharest-hackathon.onrender.com) | [Slide Deck]() | [Business Plan]() | [AI Agent Architecture]() | [Trading Strategy]() | [Contribution Guide]() | [Design Files]()
 
 ---
 
