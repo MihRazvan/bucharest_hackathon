@@ -261,25 +261,46 @@ class VaultService:
             if not self.vault_contract:
                 return {"status": "error", "message": "Contract not initialized"}
                 
+            # Add 0x prefix if missing
+            if not private_key.startswith('0x'):
+                private_key = '0x' + private_key
+                
             # Get the account from the private key
             account = self.w3.eth.account.from_key(private_key)
+            print(f"Using account for withdrawal: {account.address}")
             
             # Build the transaction
             tx = self.vault_contract.functions.withdraw(shares_wei).build_transaction({
                 'from': account.address,
                 'gas': 300000,
                 'gasPrice': self.w3.eth.gas_price,
-                'nonce': self.w3.eth.get_transaction_count(account.address)
+                'nonce': self.w3.eth.get_transaction_count(account.address),
+                'chainId': self.w3.eth.chain_id
             })
+            
+            print(f"Withdrawal transaction built: {tx}")
             
             # Sign the transaction
             signed_tx = self.w3.eth.account.sign_transaction(tx, private_key)
             
-            # Send the transaction
-            tx_hash = self.w3.eth.send_raw_transaction(signed_tx.rawTransaction)
+            # Debug what attributes the signed transaction has
+            print(f"Signed transaction attributes: {dir(signed_tx)}")
             
-            # Wait for transaction receipt
+            # Get the raw transaction bytes, accounting for different attribute names
+            if hasattr(signed_tx, 'rawTransaction'):
+                raw_tx = signed_tx.rawTransaction
+            elif hasattr(signed_tx, 'raw_transaction'):
+                raw_tx = signed_tx.raw_transaction
+            else:
+                return {"status": "error", "message": f"Cannot find raw transaction data. Available attributes: {dir(signed_tx)}"}
+            
+            # Send the transaction
+            tx_hash = self.w3.eth.send_raw_transaction(raw_tx)
+            print(f"Withdrawal transaction hash: {tx_hash.hex()}")
+            
+            # Wait for receipt
             receipt = self.w3.eth.wait_for_transaction_receipt(tx_hash)
+            print(f"Withdrawal transaction receipt: {receipt}")
             
             # Get balance after withdrawal
             shares_balance = self.vault_contract.functions.balanceOf(account.address).call()
@@ -297,7 +318,10 @@ class VaultService:
                 }
             }
         except Exception as e:
-            return {"status": "error", "message": str(e)}
+            import traceback
+            trace = traceback.format_exc()
+            print(f"Error in withdraw: {str(e)}\n{trace}")
+            return {"status": "error", "message": f"Error: {str(e)}\n{trace}"}
     
     async def get_balance(self, address):
         """Get the balance of shares for an address"""
