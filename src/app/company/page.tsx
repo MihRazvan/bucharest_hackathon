@@ -81,12 +81,23 @@ export default function CompanyPage() {
     sessionStorage.setItem('invoicesData', JSON.stringify(mockInvoices));
   }, [mockInvoices]);
 
+  // Clear all session data on disconnect or when needed
+  const clearSessionData = React.useCallback(() => {
+    if (typeof window !== 'undefined') {
+      sessionStorage.removeItem('companyData');
+      sessionStorage.removeItem('invoicesData');
+      sessionStorage.removeItem('companyRegistrationForm');
+      setCompany(null);
+      setMockInvoices([]);
+    }
+  }, []);
+
   // Use clearSessionData when wallet disconnects
   React.useEffect(() => {
     if (!isConnected) {
       clearSessionData();
     }
-  }, [isConnected]);
+  }, [isConnected, clearSessionData]);
 
   const handleInvoiceSubmit = (newInvoice: MockInvoice) => {
     // Calculate the number of days between today and the due date
@@ -277,15 +288,6 @@ export default function CompanyPage() {
         return total + remainingAmount;
       }, 0);
   }, [mockInvoices]);
-
-  // Clear all session data on disconnect or when needed
-  const clearSessionData = () => {
-    sessionStorage.removeItem('companyData');
-    sessionStorage.removeItem('invoicesData');
-    sessionStorage.removeItem('companyRegistrationForm');
-    setCompany(null);
-    setMockInvoices([]);
-  };
 
   if (!isConnected) {
     return (
