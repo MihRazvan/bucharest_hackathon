@@ -31,7 +31,7 @@ Traditional invoice factoring is slow, opaque, and capital inefficient. Pipe It!
 5. **Profit Reporting**: Profits are distributed proportionally to vault participants.
 6. **Invoice Settlement**: Upon payment, the remaining amount is returned.
 
-All powered by [Token Metrics](https://www.tokenmetrics.com/), [Request Network](https://request.network/), [Base](http://base.org/), [Via Labs](https://vialabs.io/), [OpenAI](https://openai.com/), and our seamless UX.
+All powered by [Token Metrics](https://www.tokenmetrics.com/), [Request Network](https://request.network/), [Base](http://base.org/), [OpenAI](https://openai.com/), and our seamless UX.
 
 ---
 
