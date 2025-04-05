@@ -1,4 +1,4 @@
-![github banner (4)](https://github.com/user-attachments/assets/ec50f8d6-d1d7-4186-a5fa-612d2a0b258e)
+![github banner (7)](https://github.com/user-attachments/assets/79826314-d7b7-449d-920e-8a918ca96740)
 
 This strategy leverages four major Token Metrics API endpoints to create a **short-term crypto trading strategy**. The goal is to allocate a specified `idle_funds_amount` across the **top 3 scoring tokens** and generate specific **entry**, **exit**, and **stop-loss** parameters for each token.
 
