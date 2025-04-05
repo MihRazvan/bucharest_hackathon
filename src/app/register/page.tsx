@@ -15,7 +15,7 @@ export default function Register() {
           <div className="space-y-4">
             <p className="text-xl text-neutral-600">Please connect your wallet to register</p>
             <p className="text-sm text-neutral-500">
-              Click the "Connect Wallet" button in the top right corner
+              Click the &quot;Connect Wallet&quot; button in the top right corner
             </p>
           </div>
         )}
