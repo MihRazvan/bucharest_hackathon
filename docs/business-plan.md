@@ -113,8 +113,8 @@ https://www.theblock.co/research
 
 - **Github:** [here](https://github.com/MihRazvan/bucharest_hackathon) 
 
-- **Demo:** [here]()
+- **Demo:** [here](https://youtu.be/wnGs5hOHkCM?si=dqxMCemRTFvijedU)
 
-- **Pitch Deck:** [here]()
+- **Slide Deck:** [here]()
 
 - **Contact (Telegram):** @mgnt17; @Mr_TudorB; @jenseiii
