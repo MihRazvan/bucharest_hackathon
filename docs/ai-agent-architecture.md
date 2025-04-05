@@ -1,4 +1,4 @@
-![github banner (3)](https://github.com/user-attachments/assets/614bbf4a-893f-4c3a-be06-f981ebd5d38b)
+![github banner (3)](https://github.com/user-attachments/assets/623077c0-9cb8-4b03-88c8-e009895107b6)
 
 Below you can find the AI engine powering Pipe It!!'s yield strategy leverages multi-factor signals, market sentiment, and technical analysis to build and execute optimal trades on idle funds.
 
