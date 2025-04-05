@@ -13,7 +13,7 @@ class TradingPlanRequest(BaseModel):
 @router.post("/plan")
 async def generate_trading_plan(request: TradingPlanRequest):
     """Generate a trading plan for idle funds"""
-    result = await trading_agent_service.generate_trading_plan(request.idle_funds_amount)
+    result = await trading_agent_service.generate_tm_trading_strategy(request.idle_funds_amount)
     if result["status"] == "error":
         raise HTTPException(status_code=500, detail=result["message"])
     return result
@@ -54,6 +54,14 @@ async def get_market_data():
 async def get_performance_stats():
     """Get performance statistics for trading operations (mocked)"""
     result = await trading_agent_service.get_performance_stats()
+    if result["status"] == "error":
+        raise HTTPException(status_code=500, detail=result["message"])
+    return result
+
+@router.post("/backtest")
+async def backtest_strategy(request: TradingPlanRequest):
+    """Backtest a trading strategy with historical data"""
+    result = await trading_agent_service.backtest_strategy(request.idle_funds_amount)
     if result["status"] == "error":
         raise HTTPException(status_code=500, detail=result["message"])
     return result
