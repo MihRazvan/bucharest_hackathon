@@ -115,6 +115,6 @@ https://www.theblock.co/research
 
 - **Demo:** [here](https://youtu.be/wnGs5hOHkCM?si=dqxMCemRTFvijedU)
 
-- **Slide Deck:** [here]()
+- **Slide Deck:** [here](https://github.com/MihRazvan/bucharest_hackathon/blob/main/docs/slide-deck.md)
 
 - **Contact (Telegram):** @mgnt17; @Mr_TudorB; @jenseiii
