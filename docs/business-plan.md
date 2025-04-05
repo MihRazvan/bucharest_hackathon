@@ -41,9 +41,53 @@ https://www.theblock.co/research
 
 ---
 
+### Assumptions
+
+- **Protocol fee**: 1% per transaction
+
+- **Average invoice size**: $5,000
+
+- **Monthly growth in volume**: 10% (for moderate), 20% (optimistic)
+
+- **Timeframe**: 12 months
+
+---
+
+### Revenue Projection Table (1% Comission/ Fee)
+
+| Month | Conservative (50 invoices/mo) | Cumulative | Moderate (100 invoices/mo, +10%) | Cumulative | Optimistic (200 invoices/mo, +20%) | Cumulative |
+|-------|-------------------------------|------------|----------------------------------|------------|------------------------------------|------------|
+| 1     | $2,500                        | $2,500     | $5,000                           | $5,000     | $10,000                            | $10,000    |
+| 2     | $2,500                        | $5,000     | $5,500                           | $10,500    | $12,000                            | $22,000    |
+| 3     | $2,500                        | $7,500     | $6,050                           | $16,550    | $14,400                            | $36,400    |
+| 4     | $2,500                        | $10,000    | $6,655                           | $23,205    | $17,280                            | $53,680    |
+| 5     | $2,500                        | $12,500    | $7,321                           | $30,526    | $20,736                            | $74,416    |
+| 6     | $2,500                        | $15,000    | $8,053                           | $38,579    | $24,883                            | $99,299    |
+| 7     | $2,500                        | $17,500    | $8,859                           | $47,438    | $29,860                            | $129,159   |
+| 8     | $2,500                        | $20,000    | $9,745                           | $57,183    | $35,832                            | $164,991   |
+| 9     | $2,500                        | $22,500    | $10,720                          | $67,903    | $42,998                            | $207,989   |
+| 10    | $2,500                        | $25,000    | $11,792                          | $79,695    | $51,598                            | $259,587   |
+| 11    | $2,500                        | $27,500    | $12,971                          | $92,666    | $61,917                            | $321,504   |
+| 12    | $2,500                        | $30,000    | $14,268                          | $106,934   | $74,300                            | $395,804   |
+
+---
+
+### Annual Totals
+
+- **Conservative**: 600 invoices total → $3,000,000 in volume → $30,000 in fees
+
+- **Moderate (compounding)**: ~$95,934 in protocol revenue on ~$9.5M volume
+
+- **Optimistic (compounding)**: ~$446,804 in protocol revenue on ~$44.7M volume
+
+---
+
 ### Target Users  
+
 - **Freelancers & Contractors**: Need immediate access to working capital before clients settle invoices.
+
 - **DAOs & Web3 Teams**: Operate on delayed payment cycles, often using on-chain invoices for treasury transparency.
+
 - **Crypto-native Investors**: Seek stable permissionless yield opportunities.
 
 ---
@@ -75,7 +119,11 @@ https://www.theblock.co/research
 ---
 
 ### Links  
+
 - **Github:** [here](https://github.com/MihRazvan/bucharest_hackathon) 
+
 - **Demo:** [here]()
+
 - **Pitch Deck:** [here]()
+
 - **Contact (Telegram):** @mgnt17; @Mr_TudorB; @jenseiii
