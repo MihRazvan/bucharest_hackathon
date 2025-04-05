@@ -21,7 +21,6 @@ import { Filter } from "lucide-react";
 import { CompanyRegistrationForm } from '@/components/forms/CompanyRegistrationForm';
 import { CreateInvoiceForm } from "@/components/company/CreateInvoiceForm";
 import { Slider } from "@/components/ui/slider";
-import { useAccount } from "wagmi";
 import PageBackground from '@/components/layout/PageBackground';
 
 interface MockCompany {
@@ -81,6 +80,13 @@ export default function CompanyPage() {
   React.useEffect(() => {
     sessionStorage.setItem('invoicesData', JSON.stringify(mockInvoices));
   }, [mockInvoices]);
+
+  // Use clearSessionData when wallet disconnects
+  React.useEffect(() => {
+    if (!isConnected) {
+      clearSessionData();
+    }
+  }, [isConnected]);
 
   const handleInvoiceSubmit = (newInvoice: MockInvoice) => {
     // Calculate the number of days between today and the due date
