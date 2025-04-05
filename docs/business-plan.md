@@ -43,42 +43,33 @@ https://www.theblock.co/research
 
 ### Assumptions
 
-- **Protocol fee**: 1% per transaction
+- **Average invoice size**: Starting at $30,000, growing to $50,000.
 
-- **Average invoice size**: $5,000
+  - Each client factors ~10–20 invoices/year.
 
-- **Monthly growth in volume**: 10% (for moderate), 20% (optimistic)
+- **Protocol fee**: 1% on total invoice value.
 
-- **Timeframe**: 12 months
+  - Adoption begins in niche sectors (tech, logistics) and scales globally.
 
 ---
 
 ### Revenue Projection Table (1% Comission/Facilitator Fee)
 
-| Month | Conservative (50 invoices/mo) | Cumulative | Moderate (100 invoices/mo, +10%) | Cumulative | Optimistic (200 invoices/mo, +20%) | Cumulative |
-|-------|-------------------------------|------------|----------------------------------|------------|------------------------------------|------------|
-| 1     | $2,500                        | $2,500     | $5,000                           | $5,000     | $10,000                            | $10,000    |
-| 2     | $2,500                        | $5,000     | $5,500                           | $10,500    | $12,000                            | $22,000    |
-| 3     | $2,500                        | $7,500     | $6,050                           | $16,550    | $14,400                            | $36,400    |
-| 4     | $2,500                        | $10,000    | $6,655                           | $23,205    | $17,280                            | $53,680    |
-| 5     | $2,500                        | $12,500    | $7,321                           | $30,526    | $20,736                            | $74,416    |
-| 6     | $2,500                        | $15,000    | $8,053                           | $38,579    | $24,883                            | $99,299    |
-| 7     | $2,500                        | $17,500    | $8,859                           | $47,438    | $29,860                            | $129,159   |
-| 8     | $2,500                        | $20,000    | $9,745                           | $57,183    | $35,832                            | $164,991   |
-| 9     | $2,500                        | $22,500    | $10,720                          | $67,903    | $42,998                            | $207,989   |
-| 10    | $2,500                        | $25,000    | $11,792                          | $79,695    | $51,598                            | $259,587   |
-| 11    | $2,500                        | $27,500    | $12,971                          | $92,666    | $61,917                            | $321,504   |
-| 12    | $2,500                        | $30,000    | $14,268                          | $106,934   | $74,300                            | $395,804   |
+| Year | Clients | Avg Invoice Size | Total Volume  | Revenue (1%) | Cumulative Revenue |
+|------|---------|------------------|---------------|--------------|---------------------|
+| 2025 | 50      | $30,000          | $15,000,000   | $150,000     | $150,000            |
+| 2026 | 250     | $35,000          | $87,500,000   | $875,000     | $1,025,000          |
+| 2027 | 800     | $40,000          | $320,000,000  | $3,200,000   | $4,225,000          |
+| 2028 | 2,000   | $45,000          | $900,000,000  | $9,000,000   | $13,225,000         |
+| 2029 | 5,000   | $50,000          | $2,500,000,000| $25,000,000  | $38,225,000         |
 
----
+#### Notes
 
-### Annual Totals
+- Market trends show 10–13% annual growth for digital invoice factoring solutions.
 
-- **Conservative**: 600 invoices total → $3,000,000 in volume → $30,000 in fees
+- Non-recourse, protocol-driven finance is on the rise.
 
-- **Moderate (compounding)**: ~$95,934 in protocol revenue on ~$9.5M volume
-
-- **Optimistic (compounding)**: ~$446,804 in protocol revenue on ~$44.7M volume
+- Digital-native platforms are eating into traditional factoring market share.
 
 ---
 
