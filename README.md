@@ -13,8 +13,11 @@
 Traditional invoice factoring is slow, opaque, and capital inefficient. Pipe It!! solves this by:
 
 - **Instant liquidity** through financing Request Network invoices.
+
 - **Smart yield optimization** with AI-based trading of idle vault funds.
+
 - **Market-responsive pricing** using Token Metrics real-time sentiment data.
+
 - **Secure & scalable** with Ethereum smart contracts on Base network.
 
 ---
@@ -42,8 +45,6 @@ All powered by [Token Metrics](https://www.tokenmetrics.com/), [Request Network]
 
 - **Request Network**: Integrated for seamless invoice issuance and payments, ensuring trustless and efficient financial operations.
 
-- **VIA Labs**: Utilized for cross-chain communication and use of ERC-20 tokens accross the networks.
-
 ---
 
 ## User Flow
@@ -67,25 +68,36 @@ All powered by [Token Metrics](https://www.tokenmetrics.com/), [Request Network]
 ## Tech Stack
 
 ### Backend
+
 - **Language**: Python 3.8+
+
 - **Framework**: FastAPI (async support & auto-docs)
 
 ### Blockchain
+
 - **Network**: Base Mainnet & Base Sepolia Testnet
+
 - **Smart Contracts**: Solidity 0.8.20
   - `FactoraVaultETH`: Manages deposits, shares, and yield
 
 ### APIs & Agents
+
 - **Token Metrics API**: Market data & AI signals
+
 - **OpenAI API**: Strategy generation (optional extension)
+
 - **Coinbase AgentKit**: Wallet & DEX interactions
+
 - **Request Network API**: Invoice management
 
 ### Dev Tools & Libs
+
 - `web3.py`, `pandas`, `requests`, `tqdm`, `tmai-api`
 
 ### Backend Deployment
+
 - **Platform**: Render.com  
+
 - **Live URL**: [https://bucharest-hackathon.onrender.com](https://bucharest-hackathon.onrender.com)
 
 ### Complete Architecture Flowchart
@@ -101,10 +113,15 @@ All powered by [Token Metrics](https://www.tokenmetrics.com/), [Request Network]
 [FactoraVaultETH.sol](https://github.com/MihRazvan/bucharest_hackathon/blob/main/backend/factora-contracts/src/FactoraVaultETH.sol)
 
 ### FactoraVaultETH.sol
+
 - **Deposits**: Accept ETH, mint vault shares.
+
 - **Withdrawals**: Burn shares, return ETH.
+
 - **Trading**: Authorized agents trade idle funds.
+
 - **Profit Reporting**: Update vault balance post-trade.
+
 - **Emergency Withdrawal**: Admin control for safety.
 
 ---
