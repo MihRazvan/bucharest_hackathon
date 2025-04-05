@@ -2,7 +2,7 @@
 
 ![github banner (2)](https://github.com/user-attachments/assets/e90f4b31-4cd4-4591-98ae-cd4958a40cda)
 
-**PipeIt** is a Base-powered invoice factoring platform with intelligent yield generation. It enables businesses to borrow against their invoices, while allowing investors to earn APY through AI-driven trading strategies.
+**Pipe It!!** is a Base-powered invoice factoring platform with intelligent yield generation. It enables businesses to borrow against their invoices, while allowing investors to earn APY through AI-driven trading strategies.
 
 [Demo Video]() | [Prototype App]() | [Backend](https://bucharest-hackathon.onrender.com) | [Pitch Deck]() | [Business Plan]() | [AI Agent Architecture]() | [Trading Strategy]() | [Contribution Guide]() | [Design Files]()
 
@@ -10,7 +10,7 @@
 
 ## Why Pipe It!!?
 
-Traditional invoice factoring is slow, opaque, and capital inefficient. PipeIt solves this by:
+Traditional invoice factoring is slow, opaque, and capital inefficient. Pipe It!! solves this by:
 
 - **Instant liquidity** through financing Request Network invoices.
 - **Smart yield optimization** with AI-based trading of idle vault funds.
@@ -19,10 +19,10 @@ Traditional invoice factoring is slow, opaque, and capital inefficient. PipeIt s
 
 ---
 
-## How PipeIt!! Works?
+## How Pipe It!! Works?
 
 1. **Invoice Submission**: Businesses register and submit invoices via the frontend.
-2. **Factoring Offer**: PipeIt evaluates risk & sentiment and offers an advance.
+2. **Factoring Offer**: Pipe It!! evaluates risk & sentiment and offers an advance.
 3. **Advance Payout**: If accepted, ETH is transferred from the Flooz Vault.
 4. **Idle Funds Trading**: Unused funds are allocated using AI-generated strategies.
 5. **Profit Reporting**: Profits are distributed proportionally to vault participants.
@@ -38,7 +38,7 @@ All powered by [Token Metrics](https://www.tokenmetrics.com/), [Request Network]
 
 ### Invoice Factoring
 1. User creates invoice → [POST `/api/invoices/create`]
-2. PipeIt calculates factoring offer → [POST `/api/factoring/offers`]
+2. Pipe It!! calculates factoring offer → [POST `/api/factoring/offers`]
 3. User accepts → [POST `/api/factoring/accept`]
 4. On invoice payment → Remaining amount is released.
 
